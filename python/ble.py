@@ -31,11 +31,12 @@ scan_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_int, POINTER(c_ubyte))
 connect_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_int, c_int)
 bond_state_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_ubyte, c_int)
 rssi_cb_t = CFUNCTYPE(None, c_int, c_int, c_int)
-gatt_found_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), c_int)
+gatt_found_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte),  c_int)
+gatt_desc_found_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), POINTER(c_ubyte), c_int)
 gatt_finished_cb_t = CFUNCTYPE(None, c_int, c_int)
 gatt_response_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), c_ushort, c_ushort, c_int)
 gatt_notification_register_cb_t = CFUNCTYPE(None, c_int, c_int, c_int, c_int)
-gatt_notification_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), c_ushort, c_ubyte)
+gatt_notification_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), POINTER(c_ubyte), c_ushort, c_ubyte)
 
 ## BLE callbacks structure
 class ble_cbs_t(Structure):
@@ -51,7 +52,7 @@ class ble_cbs_t(Structure):
         ("srvc_finished_cb", gatt_finished_cb_t),
         ("char_found_cb", gatt_found_cb_t),
         ("char_finished_cb", gatt_finished_cb_t),
-        ("desc_found_cb", gatt_found_cb_t),
+        ("desc_found_cb", gatt_desc_found_cb_t),
         ("desc_finished_cb", gatt_finished_cb_t),
         ("char_read_cb", gatt_response_cb_t),
         ("desc_read_cb", gatt_response_cb_t),
@@ -184,8 +185,8 @@ def py_char_found_cb(conn_id, elem_id, uuid, props): # void (int conn_id, int id
 def py_char_finished_cb(conn_id, status): # void (int conn_id, int status)
     print "Dev conn_id %d characteristic discovery finished: status %d" % (conn_id, status)
 
-def py_desc_found_cb(conn_id, elem_id, uuid, props): # void (int conn_id, int id, const uint8_t *uuid, int props)
-    print "Dev conn_id %d descriptor %d found: UUID %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x props %d" % (conn_id, elem_id, uuid[15], uuid[14], uuid[13], uuid[12], uuid[11], uuid[10], uuid[9], uuid[8], uuid[7], uuid[6], uuid[5], uuid[4], uuid[3], uuid[2], uuid[1], uuid[0], props)
+def py_desc_found_cb(conn_id, elem_id, uuid, char_uuid, props): # void (int conn_id, int id, const uint8_t *uuid, int props)
+    print "Dev conn_id %d descriptor %d found: UUID %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x CHAR_UUID %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x props %d" % (conn_id, elem_id, uuid[15], uuid[14], uuid[13], uuid[12], uuid[11], uuid[10], uuid[9], uuid[8], uuid[7], uuid[6], uuid[5], uuid[4], uuid[3], uuid[2], uuid[1], uuid[0], char_uuid[15], char_uuid[14], char_uuid[13], char_uuid[12], char_uuid[11], char_uuid[10], char_uuid[9], char_uuid[8], char_uuid[7], char_uuid[6], char_uuid[5], char_uuid[4], char_uuid[3], char_uuid[2], char_uuid[1], char_uuid[0], props)
 
 def py_desc_finished_cb(conn_id, status): # void (int conn_id, int status)
     print "Dev conn_id %d descriptor discovery finished: status %d" % (conn_id, status)
@@ -221,8 +222,13 @@ def py_char_notification_register_cb(conn_id, char_id, registered, status): # vo
         action = "unregistered"
     print "Dev conn_id %d %s notifications for characteristic %d status %d" % (conn_id, action, char_id, status)
 
-def py_char_notification_cb(conn_id, char_id, value, value_len, is_indication): # void (int conn_id, int char_id, const uint8_t *value, uint16_t value_len, uint8_t is_indication)
-    print "Dev conn_id %d notification for characteristic %d status %d:" % (conn_id, char_id, status),
+def py_char_notification_cb(conn_id, char_id, uuid, value, value_len, is_indication): # void (int conn_id, int char_id, const uint8_t *uuid, const uint8_t *value, uint16_t value_len, uint8_t is_indication)
+    print "Dev conn_id %d notification for characteristic %d is_indication %d:" % (conn_id, char_id, is_indication)
+    print "\tUUID %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x"%(uuid[15], uuid[14], uuid[13]\
+                                                                                             , uuid[12], uuid[11], uuid[10], \
+                                                                                              uuid[9],uuid[8], uuid[7], uuid[6], \
+                                                                                              uuid[5], uuid[4], uuid[3], uuid[2], \
+                                                                                              uuid[1], uuid[0])
     for i in range(value_len):
         print " %02X" % value[i],
     print
@@ -238,7 +244,7 @@ cbs = ble_cbs_t(enable_cb_t(py_enable_cb),
                 gatt_finished_cb_t(py_srvc_finished_cb),
                 gatt_found_cb_t(py_char_found_cb),
                 gatt_finished_cb_t(py_char_finished_cb),
-                gatt_found_cb_t(py_desc_found_cb),
+                gatt_desc_found_cb_t(py_desc_found_cb),
                 gatt_finished_cb_t(py_desc_finished_cb),
                 gatt_response_cb_t(py_char_read_cb),
                 gatt_response_cb_t(py_desc_read_cb),
@@ -248,7 +254,7 @@ cbs = ble_cbs_t(enable_cb_t(py_enable_cb),
                 gatt_notification_cb_t(py_char_notification_cb))
 
 __all__ = [libble, enable_cb_t, adapter_state_cb_t, scan_cb_t, connect_cb_t,
-           bond_state_cb_t, rssi_cb_t, gatt_found_cb_t, gatt_finished_cb_t,
+           bond_state_cb_t, rssi_cb_t, gatt_found_cb_t, gatt_desc_found_cb_t, gatt_finished_cb_t,
            gatt_response_cb_t, gatt_notification_register_cb_t,
            gatt_notification_cb_t, ble_cbs_t, enable, disable, start_scan,
            stop_scan, connect, disconnect, pair, remove_bond, read_remote_rssi,

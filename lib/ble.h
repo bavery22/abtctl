@@ -118,18 +118,36 @@ typedef void (*ble_rssi_cb_t)(int conn_id, int rssi, int status);
 
 /**
  * Type that represents a callback function to notify of a new GATT element
- * (service, characteristic or descriptor) found in a BLE device.
+ * (service, characteristic) found in a BLE device.
  *
  * @param conn_id The identifier of the connected remote device.
  * @param id ID of the service, characteristic or descriptor.
  * @param uuid A pointer to a 16 element array representing each part of the
- *             service, characteristic or descriptor UUID.
+ *             service or characteristic  UUID.
  * @param props Additional element properties. For services, whether the service
  *              is primary or not: 1 primary, 0 included. Always zero for other
  *              GATT elements.
  */
 typedef void (*ble_gatt_found_cb_t)(int conn_id, int id, const uint8_t *uuid,
                                     int props);
+
+
+/**
+ * Type that represents a callback function to notify of a new GATT element
+ * (descriptor) found in a BLE device.
+ *
+ * @param conn_id The identifier of the connected remote device.
+ * @param id ID of the service, characteristic or descriptor.
+ * @param uuid A pointer to a 16 element array representing each part of the
+ *             descriptor UUID.
+ * @param uuid A pointer to a 16 element array representing each part of the
+ *             associated characteristic UUID.
+ * @param props Additional element properties. For services, whether the service
+ *              is primary or not: 1 primary, 0 included. Always zero for other
+ *              GATT elements.
+ */
+typedef void (*ble_gatt_desc_found_cb_t)(int conn_id, int id, const uint8_t *uuid,
+                                    const uint8_t *char_uuid,int props);
 
 /**
  * Type that represents a callback function to notify that a GATT operation has
@@ -182,6 +200,7 @@ typedef void (*ble_gatt_notification_register_cb_t)(int conn_id, int char_id,
  *                      indication: 0 notification, 1 indication.
  */
 typedef void (*ble_gatt_notification_cb_t)(int conn_id, int char_id,
+					   const uint8_t *uuid,
                                            const uint8_t *value,
                                            uint16_t value_len,
                                            uint8_t is_indication);
@@ -201,7 +220,7 @@ typedef struct ble_cbs {
     ble_gatt_finished_cb_t srvc_finished_cb;
     ble_gatt_found_cb_t char_found_cb;
     ble_gatt_finished_cb_t char_finished_cb;
-    ble_gatt_found_cb_t desc_found_cb;
+    ble_gatt_desc_found_cb_t desc_found_cb;
     ble_gatt_finished_cb_t desc_finished_cb;
     ble_gatt_response_cb_t char_read_cb;
     ble_gatt_response_cb_t desc_read_cb;

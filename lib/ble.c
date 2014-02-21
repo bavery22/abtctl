@@ -524,28 +524,36 @@ int ble_gatt_discover_characteristics(int conn_id, int service_id) {
     ble_device_t *dev;
     bt_status_t s;
 
-    if (conn_id <= 0)
-        return -1;
-
-    if (!data.gattiface)
-        return -1;
-
+    if (conn_id <= 0){
+      fprintf(stderr,"%s:Bad conn_id\n",__FUNCTION__);
+      return -1;
+    }
+    if (!data.gattiface){
+      fprintf(stderr,"%s:Bad gatt_iface\n",__FUNCTION__);
+      return -1;
+    }
     dev = find_device_by_conn_id(conn_id);
-    if (!dev)
-        return -1;
+    if (!dev){
+      fprintf(stderr,"%s:Bad dev\n",__FUNCTION__);
+      return -1;
+    }
 
-    if (dev->srvc_count <= 0)
-        return -1;
+    if (dev->srvc_count <= 0){
+      fprintf(stderr,"%s:Bad srvc_count <= 0\n",__FUNCTION__);
+      return -1;
+    }
 
-    if (service_id < 0 || service_id >= dev->srvc_count)
+    if (service_id < 0 || service_id >= dev->srvc_count){
+      fprintf(stderr,"%s:Bad service_id=%d \n",__FUNCTION__,service_id);
         return -1;
-
+    }
     s = data.gattiface->client->get_characteristic(conn_id,
                                                    &dev->srvcs[service_id],
                                                    NULL);
-    if (s != BT_STATUS_SUCCESS)
-        return -s;
-
+    if (s != BT_STATUS_SUCCESS){
+      fprintf(stderr,"%s:Bad return from client->get_char return = %d\n",__FUNCTION__,s);
+      return -s;
+    }
     return 0;
 }
 
@@ -592,7 +600,7 @@ static void descriptor_discovery_cb(int conn_id, int status,
     }
 
     if (data.cbs.desc_found_cb)
-        data.cbs.desc_found_cb(conn_id, id, descr_id->uu, 0);
+      data.cbs.desc_found_cb(conn_id, id, descr_id->uu, char_id->uuid.uu,0);
 
     /* Get next descriptor */
     s = data.gattiface->client->get_descriptor(conn_id, srvc_id, char_id,
@@ -858,7 +866,7 @@ void notify_cb(int conn_id, btgatt_notify_params_t *p_data) {
     int id = 0;
 
     if (data.cbs.char_notification_cb)
-        data.cbs.char_notification_cb(conn_id, id, p_data->value, p_data->len,
+      data.cbs.char_notification_cb(conn_id, id, p_data->char_id.uuid.uu,p_data->value, p_data->len,
                                       !p_data->is_notify);
 }
 
@@ -891,6 +899,7 @@ static int ble_gatt_char_notification(uint8_t operation, int conn_id,
     srvc = &dev->chars[char_id].s;
     ch = &dev->chars[char_id].c;
 
+    fprintf(stderr,"operation = %d\n",operation);
     switch (operation) {
         case 0:
             s = data.gattiface->client->register_for_notification(data.client,
