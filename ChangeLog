@@ -1,0 +1,65 @@
+0.5
+===
+
+This version creates libble, a library that wraps all libhardware BLE features.
+The main objective of this library is to ease accessing these features from
+scripting languages, through the creating of bindings of libble for each
+desired scripting language. As an example Python bindings of libble are
+provided as well, together with instructions on how to install and execute both
+the bindings and the Python interpreter itself on a vanilla AOSP.
+
+0.4
+===
+
+This version adds some important features and bugfixes:
+
+ * Support to multiple connections
+ * Some terminal fixes on line edit feature
+ * Check for root user
+
+0.3
+===
+
+This version adds commands to:
+
+ * Discover descriptors
+ * Read and write descriptors value
+ * Enable, disable and handle indications and notifications
+
+0.2
+===
+
+This version adds commands to:
+
+ * Search services on the connected remote device
+ * List included services of a certain service
+ * List characteristics of a certain service
+ * Read a characteristic
+ * Write a characteristic, either using a Write Request and handling the
+ returned Write Response, or using a Write Command (without response).
+
+It also improves the command prompt, adding command line edit capabilities and
+history.
+
+Known issues:
+-------------
+
+Bluedroid doesn't handle the bonded devices list very well. This means it may
+fail to realize that the link already have the necessary security level and
+try to re-authenticate a link that is already bonded when there is no need.
+Also, it may fail to pair with a unbonded device because it thinks it is
+already bonded (this have been noticed after removing the bond with a
+previously bonded device). To force the removal of all bonded devices the
+files /data/misc/bluedroid/bt_config.xml and
+/data/misc/bluedroid/bt_config.old should be deleted.
+
+0.1
+===
+
+Provides a basic user prompt and commands to:
+
+ * enable/disable the bluetooth adapter
+ * enable/disable discovery of BR/EDR devices
+ * enable/disable scan of BLE devices
+ * connect/disconnect to/from BLE devices
+ * pair/unpair with BLE devices
