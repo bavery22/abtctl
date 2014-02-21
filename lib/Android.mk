@@ -8,5 +8,6 @@ LOCAL_SRC_FILES := ble.c
 LOCAL_SHARED_LIBRARIES := libhardware
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE := libble
+LOCAL_CFLAGS += -g -O0
 
 include $(BUILD_SHARED_LIBRARY)
