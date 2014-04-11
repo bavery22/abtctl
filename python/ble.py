@@ -30,6 +30,7 @@ adapter_state_cb_t = CFUNCTYPE(None, c_ubyte)
 scan_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_int, POINTER(c_ubyte))
 connect_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_int, c_int)
 bond_state_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_ubyte, c_int)
+acl_state_cb_t = CFUNCTYPE(None, POINTER(c_ubyte), c_ubyte, c_int)
 rssi_cb_t = CFUNCTYPE(None, c_int, c_int, c_int)
 gatt_found_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte),  c_int)
 gatt_desc_found_cb_t = CFUNCTYPE(None, c_int, c_int, POINTER(c_ubyte), POINTER(c_ubyte), c_int)
@@ -47,6 +48,7 @@ class ble_cbs_t(Structure):
         ("connect_cb", connect_cb_t),
         ("disconnect_cb", connect_cb_t),
         ("bond_state_cb", bond_state_cb_t),
+        ("acl_state_cb", acl_state_cb_t),
         ("rssi_cb", rssi_cb_t),
         ("srvc_found_cb", gatt_found_cb_t),
         ("srvc_finished_cb", gatt_finished_cb_t),
@@ -79,6 +81,7 @@ def hex_string_to_ubyte_pointer(s, l):
     return p
 
 def enable(cbs):
+    print "MAIN BLE  enable called"
     if cbs is None:
         return -1
     libble.ble_enable(cbs)
@@ -88,9 +91,11 @@ start_scan = libble.ble_start_scan
 stop_scan = libble.ble_stop_scan
 
 def connect(address):
+    print "MAIN BLE  connect called"
     libble.ble_connect(bda_from_string(address))
 
 def disconnect(address):
+    print "MAIN BLE  disconnect called"
     libble.ble_disconnect(bda_from_string(address))
 
 def pair(address):
@@ -170,6 +175,9 @@ def py_disconnect_cb(address, conn_id, status): # void (const uint8_t *address, 
 def py_bond_state_cb(address, state, status): # void (const uint8_t *address, ble_bond_state_t state, int status)
     print "%02X:%02X:%02X:%02X:%02X:%02X bond state changed: state %d status %d" % (address[0], address[1], address[2], address[3], address[4], address[5], state, status)
 
+def py_acl_state_cb(address, state, status): # void (const uint8_t *address, ble_acl_state_t state, int status)
+    print "%02X:%02X:%02X:%02X:%02X:%02X acl state changed: state %d status %d" % (address[0], address[1], address[2], address[3], address[4], address[5], state, status)
+
 def py_rssi_cb(conn_id, rssi, status): # void (int conn_id, int rssi, int status)
     print "Dev conn_id %d RSSI %d status %d" % (conn_id, rssi, status)
 
@@ -239,6 +247,7 @@ cbs = ble_cbs_t(enable_cb_t(py_enable_cb),
                 connect_cb_t(py_connect_cb),
                 connect_cb_t(py_disconnect_cb),
                 bond_state_cb_t(py_bond_state_cb),
+                acl_state_cb_t(py_acl_state_cb),
                 rssi_cb_t(py_rssi_cb),
                 gatt_found_cb_t(py_srvc_found_cb),
                 gatt_finished_cb_t(py_srvc_finished_cb),
@@ -253,8 +262,8 @@ cbs = ble_cbs_t(enable_cb_t(py_enable_cb),
                 gatt_notification_register_cb_t(py_char_notification_register_cb),
                 gatt_notification_cb_t(py_char_notification_cb))
 
-__all__ = [libble, enable_cb_t, adapter_state_cb_t, scan_cb_t, connect_cb_t,
-           bond_state_cb_t, rssi_cb_t, gatt_found_cb_t, gatt_desc_found_cb_t, gatt_finished_cb_t,
+__all__ = [libble, enable_cb_t, adapter_state_cb_t, scan_cb_t, connect_cb_t,bond_state_cb_t,
+           acl_state_cb_t, rssi_cb_t, gatt_found_cb_t, gatt_desc_found_cb_t, gatt_finished_cb_t,
            gatt_response_cb_t, gatt_notification_register_cb_t,
            gatt_notification_cb_t, ble_cbs_t, enable, disable, start_scan,
            stop_scan, connect, disconnect, pair, remove_bond, read_remote_rssi,
