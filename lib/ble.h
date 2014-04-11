@@ -48,6 +48,12 @@ typedef enum {
     BLE_BOND_BONDED    /**< The remote device is bonded. */
 } ble_bond_state_t;
 
+/** BLE ACL state */
+typedef enum {
+  BLE_ACL_STATE_CONNECTED,
+  BLE_ACL_STATE_DISCONNECTED
+} ble_acl_state_t;
+
 /**
  * Type that represents a callback function to inform that BLE is enabled and
  * available to be used.
@@ -104,6 +110,22 @@ typedef void (*ble_connect_cb_t)(const uint8_t *address, int conn_id,
  */
 typedef void (*ble_bond_state_cb_t)(const uint8_t *address,
                                     ble_bond_state_t state, int status);
+
+/**
+ * Type that represents a callback function to notify when the acl state with a
+ * BLE device changes.
+ *
+ * @param address A pointer to a 6 element array representing each part of the
+ *                Bluetooth address of the remote device, where the
+ *                most-significant byte is on position 0 and the
+ *                least-sifnificant byte is on position 5.
+ * @param state The new acl state.
+ * @param status The status in which the pair or remove bond operation has
+ *               finished.
+ */
+typedef void (*ble_acl_state_cb_t)(const uint8_t *address,
+                                    ble_acl_state_t state, int status);
+
 
 /**
  * Type that represents a callback function to inform the RSSI of the remote
@@ -215,6 +237,7 @@ typedef struct ble_cbs {
     ble_connect_cb_t connect_cb;
     ble_connect_cb_t disconnect_cb;
     ble_bond_state_cb_t bond_state_cb;
+    ble_acl_state_cb_t acl_state_cb;
     ble_rssi_cb_t rssi_cb;
     ble_gatt_found_cb_t srvc_found_cb;
     ble_gatt_finished_cb_t srvc_finished_cb;

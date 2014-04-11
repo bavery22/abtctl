@@ -252,6 +252,30 @@ static void bond_state_changed_cb(bt_status_t status, bt_bdaddr_t *bda,
         data.cbs.bond_state_cb(bda->address, s, status);
 }
 
+/* called sometime */
+static void acl_state_changed_cb(bt_status_t status, bt_bdaddr_t *bda,
+                                  bt_acl_state_t state) {
+  ble_acl_state_t s;
+  ble_device_t *dev;
+
+    switch (state) {
+        case BT_ACL_STATE_CONNECTED:
+            s = BLE_ACL_STATE_CONNECTED;
+            break;
+        case BT_ACL_STATE_DISCONNECTED:
+            s = BLE_ACL_STATE_DISCONNECTED;
+            break;
+        default:
+            return;
+    }
+
+    dev = find_device_by_address(bda->address);
+    if (dev && data.cbs.acl_state_cb)
+        data.cbs.acl_state_cb(bda->address, s, status);
+}
+
+
+
 static int ble_pair_internal(const uint8_t *address, uint8_t operation) {
     ble_device_t *dev;
     bt_status_t s = BT_STATUS_UNSUPPORTED;
@@ -1020,7 +1044,7 @@ static bt_callbacks_t btcbs = {
     NULL, /* pin_request_cb */
     NULL, /* ssp_request_cb */
     bond_state_changed_cb,
-    NULL, /* acl_state_changed_callback */
+    acl_state_changed_cb, /* acl_state_changed_callback */
     thread_event_cb,
     NULL, /* dut_mode_recv_callback */
     NULL, /* le_test_mode_callback */
